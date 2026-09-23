@@ -10,7 +10,7 @@ module Instruction_Mem (
 reg [`WIDTH-1:0] P_Mem [`PMEMDEPTH-1:0];
 
 initial begin
-     $readmemh("programmem.h", P_Mem);
+     $readmemh("program.h", P_Mem);
 end
 
 always @(posedge clk or negedge rstn) begin

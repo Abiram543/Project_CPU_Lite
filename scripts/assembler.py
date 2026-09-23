@@ -717,7 +717,7 @@ def main():
     if len(sys.argv) == 3:
         output_file = Path(sys.argv[2])
     else:
-        output_file = input_file.with_suffix(".hex")
+        output_file = input_file.with_suffix(".h")
 
     try:
 
