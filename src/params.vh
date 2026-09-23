@@ -1,3 +1,7 @@
 `define WIDTH 32
 `define OPWIDTH 8  
 `define LOG2_WIDTH $clog(`WIDTH) 
+`define PMEMDEPTH 4096
+`define LOG2_PMEMDEPTH $clog(`PMEMDEPTH)  
+`define NofR 16
+`define LOG2_NofR $clog(`NofR)
