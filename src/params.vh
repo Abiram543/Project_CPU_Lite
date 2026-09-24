@@ -5,3 +5,5 @@
 `define LOG2_PMEMDEPTH $clog(`PMEMDEPTH)  
 `define NofR 16
 `define LOG2_NofR $clog(`NofR)
+`define STMDEPTH 1024
+`define LOG2_STMDEPTH $clog(`STMDEPTH)  
