@@ -6,10 +6,10 @@ module PSR (
     output reg [3:0] PSR
 );
 /*
-PSR[0] = Z
-PSR[1] = N 
-PSR[2] = C
-PSR[3] = V 
+PSR[0] = Zero
+PSR[1] = Negative 
+PSR[2] = Carry
+PSR[3] = Overflow 
 */
 always @(posedge clk or negedge rstn) begin
     if (!rstn) begin
