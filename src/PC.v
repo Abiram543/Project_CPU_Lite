@@ -1,3 +1,4 @@
+`include "params.vh"
 module PC (
     input wire clk,
     input wire rstn,    // Asynchronous Active low reset
