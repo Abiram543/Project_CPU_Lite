@@ -148,7 +148,6 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                             Valid[index] <= 1;
                             Dirty[index] <= Valid[index] ? 1 : 0;
                             tag_dir[index] <= tag;
-                            cache_done <= 1'd1;
                         end
                         else if (cpu_ren && Valid[index]) begin
                             case (offset)
@@ -158,8 +157,8 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                                 WORD3: cpu_rdata <= cache_mem[index][CACHE_WIDTH-(3*(`WIDTH))-1:CACHE_WIDTH-(4*(`WIDTH))];
                                 default: cpu_rdata <= cpu_rdata;  // Nothing Happened
                             endcase
-                            cache_done <= 1'd1;
                         end
+                        cache_done <= 1'd1;
                     end
                 end
             end 
@@ -234,6 +233,7 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                     endcase
                     Dirty[saved_index] <= 0;
                     Valid[index] <= 1;
+                    tag_dir[index] <= saved_tag;
                     cache_done <= 1;
                     resp_rd_en <= 0;
                 end
