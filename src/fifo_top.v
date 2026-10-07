@@ -1,4 +1,4 @@
-module async_fifo_top #(parameter DATA_WIDTH = 8, DEPTH = 32)(
+module fifo_top #(parameter DATA_WIDTH = 8, DEPTH = 32)(
         input wire rclk, rd_en,
         input wire wclk, wr_en,
         input wire rdrstn, wrstn,

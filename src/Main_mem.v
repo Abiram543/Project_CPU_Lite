@@ -1,16 +1,18 @@
 `include "../src/params.vh"
+
 module Main_mem (
     input wire clk_mem,
     input wire rstn_mem,
-
+    // Req FIFO side ports
     input wire [(`FIFO_WIDTH)-1:0] Data_in, // From Request FIFO output --> {1==wen/0==ren, Address, Data}
     input wire req_empty,   // Request FIFO empty
     output reg req_rd_en,   // Read enable for Req. FIFO
-
+    // Resp. FIFO side ports
     input wire resp_full,   // Response FIFO full
     output reg resp_wr_en,  // Resp. FIFO write enable signal
     output reg [(`WIDTH)-1:0] Data_out  // Response FIFO input data
 );
+
 // Main memory declaration
 reg [(`WIDTH)-1:0] Main_mem [(`MEM_DEPTH)-1:0];
 
