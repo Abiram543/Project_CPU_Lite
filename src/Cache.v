@@ -93,7 +93,7 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
 end
 
 // Next State Logic
-always @(*) begin
+always @(*) begin       // Refer the doc to understand the state diagram
     case (PS)
         IDLE: NS = cpu_req ? (!Hit ? ((Valid[index] && Dirty[index]) ? EVICT_REQ : FILL_REQ) : IDLE) : IDLE;
         EVICT_REQ: NS = (!req_full && (w_cnt3)) ? FILL_REQ : EVICT_REQ;
@@ -136,8 +136,8 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                 cache_done <= 'd0;
                 w_cnt <= 'd0;
                 if (cpu_req) begin
-                    if (Hit) begin
-                        if (cpu_wen) begin
+                    if (Hit) begin      // If Hit?
+                        if (cpu_wen) begin  // write the data val to cache mem. If already written (i.e., Valid=1), Make Dirty=1.
                             case (offset)
                                 WORD0: cache_mem[index][CACHE_WIDTH-1:CACHE_WIDTH-(`WIDTH)] <= cpu_wdata;
                                 WORD1: cache_mem[index][CACHE_WIDTH-(`WIDTH)-1:CACHE_WIDTH-(2*(`WIDTH))] <= cpu_wdata;
@@ -147,9 +147,9 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                             endcase
                             Valid[index] <= 1;
                             Dirty[index] <= Valid[index] ? 1 : 0;
-                            tag_dir[index] <= tag;
+                            tag_dir[index] <= tag;  // Update the tag directory
                         end
-                        else if (cpu_ren && Valid[index]) begin
+                        else if (cpu_ren && Valid[index]) begin     // Direct read from cache mem, if hit.
                             case (offset)
                                 WORD0: cpu_rdata <= cache_mem[index][CACHE_WIDTH-1:CACHE_WIDTH-(`WIDTH)];
                                 WORD1: cpu_rdata <= cache_mem[index][CACHE_WIDTH-(`WIDTH)-1:CACHE_WIDTH-(2*(`WIDTH))];
@@ -158,21 +158,22 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                                 default: cpu_rdata <= cpu_rdata;  // Nothing Happened
                             endcase
                         end
-                        cache_done <= 1'd1;
+                        cache_done <= 1'd1;     // If hit? cache_done=1
                     end
                 end
             end 
             
             EVICT_REQ: begin
                 cache_done <= 'd0;
+                // Save the current data values to read from main memory and write back to cache mem.
                 saved_wen <= cpu_wen;
                 saved_ren <= cpu_ren;
                 saved_tag <= tag;
                 saved_index <= index;
                 saved_addr <= cpu_addr;
                 saved_wdata <= cpu_wdata;
-                evict_addr <= {tag_dir[index], index, w_cnt};
-                case (w_cnt)
+                evict_addr <= {tag_dir[index], index, w_cnt};   // The Address of the modified data value need to write back to Main memory.
+                case (w_cnt)    // w_cnt == offset 
                     WORD0: evict_data <= cache_mem[index][CACHE_WIDTH-1:CACHE_WIDTH-(`WIDTH)];
                     WORD1: evict_data <= cache_mem[index][CACHE_WIDTH-(`WIDTH)-1:CACHE_WIDTH-(2*(`WIDTH))];
                     WORD2: evict_data <= cache_mem[index][CACHE_WIDTH-(2*(`WIDTH))-1:CACHE_WIDTH-(3*(`WIDTH))];
@@ -180,7 +181,7 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                     default: evict_data <= evict_data;  // Nothing Happened
                 endcase
                 if (!req_full) begin
-                    req_wr_data <= {1'd1, evict_addr, evict_data};
+                    req_wr_data <= {1'd1, evict_addr, evict_data};  // Send the 4 packets to Response FIFO back to back and move to NS.
                     req_wr_en <= 1;
                     if (w_cnt3) begin
                         w_cnt <= 'b0;
@@ -199,14 +200,14 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                 saved_addr <= cpu_addr;
                 saved_wdata <= cpu_wdata;
                 if (!req_full) begin
-                    req_wr_data <= {1'd0, cpu_addr, cpu_wdata};
+                    req_wr_data <= {1'd0, cpu_addr, cpu_wdata};     // Send the 1 packet to Response FIFO for the required data value read from main mem.
                     req_wr_en <= 1;
                 end
             end
             FILL_WAIT: begin
                 cache_done <= 'd0;
-                resp_rd_en <= 1;
-                r_cnt <= 0;
+                resp_rd_en <= 1;    // Wait for 1 clk_cpu cycle to ready to receive the data value from Response FIFO. 
+                r_cnt <= 0;         // In other side the main memory controller sends the line data to responsed FIFO.
             end
             FILL_CACHE: begin
                 cache_done <= 'd0;
@@ -214,7 +215,7 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                     r_cnt <= 0;
                 end
                 else if (!resp_empty) begin
-                    r_cnt <= r_cnt + 1;
+                    r_cnt <= r_cnt + 1;         // Read the 4 words (1 line) from Response FIFO back to back to 4 cycles
                 end
                 case (r_cnt)
                     WORD0: cache_mem[index][CACHE_WIDTH-1:CACHE_WIDTH-(`WIDTH)] <= resp_rd_data;
@@ -224,14 +225,14 @@ always @(posedge clk_cpu or negedge rstn_cpu ) begin
                     default: cache_mem[index] <= cache_mem[index];  // Nothing Happened
                 endcase
                 if (r_cnt3) begin
-                    case (saved_offset)
+                    case (saved_offset)     // saved_offset contains the word location in the line.
                         WORD0: cpu_rdata <= cache_mem[index][CACHE_WIDTH-1:CACHE_WIDTH-(`WIDTH)];
                         WORD1: cpu_rdata <= cache_mem[index][CACHE_WIDTH-(`WIDTH)-1:CACHE_WIDTH-(2*(`WIDTH))];
                         WORD2: cpu_rdata <= cache_mem[index][CACHE_WIDTH-(2*(`WIDTH))-1:CACHE_WIDTH-(3*(`WIDTH))];
                         WORD3: cpu_rdata <= resp_rd_data;
                         default: cpu_rdata <= cpu_rdata;  // Nothing Happened
                     endcase
-                    Dirty[saved_index] <= 0;
+                    Dirty[saved_index] <= 0;        // Update the Dirty=1 & tag directory with updated tag.
                     Valid[index] <= 1;
                     tag_dir[index] <= saved_tag;
                     cache_done <= 1;
