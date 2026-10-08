@@ -1,11 +1,10 @@
-`include "Opcode.vh"
-`include "params.vh"
+`include "../src/params.vh"
 
 module ALU (
     input wire [`WIDTH-1:0]   op1,    // from the Instr. Decode unit
     input wire [`WIDTH-1:0]   op2,
-    input wire [`OPWIDTH-1:0] opcode, 
-    
+    input wire [`OPWIDTH-1:0] opcode,
+
     output reg [`WIDTH-1:0]   ALU_out,
     output reg Zero, Carry, Neg, OV
 );
@@ -54,6 +53,8 @@ localparam OP_NOP       = 8'h00,
 wire [`WIDTH-1:0] shamt;
 assign shamt = {{(`WIDTH-`LOG2_WIDTH){1'b0}}, op2[`LOG2_WIDTH-1:0]};
 
+wire [(2*`WIDTH)-1:0] mulval = op1 * op2;
+
 always @(*) begin
     // Default Value
     ALU_out = 'b0;
@@ -67,7 +68,7 @@ always @(*) begin
             Zero = (ALU_out == 0) ? 1 : 0;
             OV = ~(op1[`WIDTH-1] ^ op2[`WIDTH-1]) & (op1[`WIDTH-1] ^ ALU_out[`WIDTH-1]);
             Neg = ALU_out[`WIDTH-1];
-        end   
+        end
         OP_SUB, OP_SUBI: begin
             {Carry, ALU_out} = op1 - op2;
             Zero = (ALU_out == 0) ? 1 : 0;
@@ -75,7 +76,7 @@ always @(*) begin
             Neg = ALU_out[`WIDTH-1];
         end
         OP_MUL: begin
-            ALU_out = (op1 * op2);
+            ALU_out = mulval[`WIDTH-1:0];
             Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
@@ -109,7 +110,7 @@ always @(*) begin
             Neg = ALU_out[`WIDTH-1];
         end
         OP_SAR: begin
-            ALU_out = ($signed(op1) >>> shamt);
+            ALU_out = $unsigned($signed(op1) >>> shamt);
             Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
@@ -151,8 +152,8 @@ always @(*) begin
             Neg = 0;
             Carry = 0;
             OV = 0;
-        end 
+        end
     endcase
 end
-    
+
 endmodule
