@@ -15,7 +15,7 @@ localparam OP_NOP       = 8'h00,
            OP_LOAD_IND  = 8'h02,
            OP_LOAD_IMM  = 8'h03,
            OP_STORE     = 8'h04,
-           OP_STORE_IND = 8'h05, 
+           OP_STORE_IND = 8'h05,
            OP_ADD       = 8'h06,
            OP_SUB       = 8'h07,
            OP_MUL       = 8'h08,
@@ -51,6 +51,9 @@ localparam OP_NOP       = 8'h00,
            OP_RET       = 8'h28,
            OP_HALT      = 8'hFF;
 
+wire [`WIDTH-1:0] shamt;
+assign shamt = {{(`WIDTH-`LOG2_WIDTH){1'b0}}, op2[`LOG2_WIDTH-1:0]};
+
 always @(*) begin
     // Default Value
     ALU_out = 'b0;
@@ -61,80 +64,80 @@ always @(*) begin
     case (opcode)
         OP_ADD, OP_ADDI: begin
             {Carry, ALU_out} = op1 + op2;
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             OV = ~(op1[`WIDTH-1] ^ op2[`WIDTH-1]) & (op1[`WIDTH-1] ^ ALU_out[`WIDTH-1]);
             Neg = ALU_out[`WIDTH-1];
         end   
         OP_SUB, OP_SUBI: begin
             {Carry, ALU_out} = op1 - op2;
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             OV = (op1[`WIDTH-1] ^ op2[`WIDTH-1]) & (op1[`WIDTH-1] ^ ALU_out[`WIDTH-1]);
             Neg = ALU_out[`WIDTH-1];
         end
         OP_MUL: begin
             ALU_out = (op1 * op2);
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_AND, OP_ANDI: begin
             ALU_out = op1 & op2;
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_OR, OP_ORI: begin
             ALU_out = op1 | op2;
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_NOT: begin
             ALU_out = ~op1;
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_EQ: begin
-            ALU_out = (op1 == op2);
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = (op1 == op2) ? 1'd1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
         end
         OP_SHL: begin
-            ALU_out = (op1 << op2[`LOG2_WIDTH-1:0]);
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = (op1 << shamt);
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_SHR: begin
-            ALU_out = (op1 >> op2[`LOG2_WIDTH-1:0]);
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = (op1 >> shamt);
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_SAR: begin
-            ALU_out = ($signed(op1) >>> op2[`LOG2_WIDTH-1:0]);
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = ($signed(op1) >>> shamt);
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_XOR, OP_XORI: begin
             ALU_out = op1 ^ op2;
-            Zero = !ALU_out ? 1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_ROR: begin
-            ALU_out = (op1 << op2[`LOG2_WIDTH-1:0]) | (op1 >> (`WIDTH - op2[`LOG2_WIDTH-1:0]));
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = (op1 << shamt) | (op1 >> (`WIDTH - shamt));
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_ROL: begin
-            ALU_out = (op1 >> op2[`LOG2_WIDTH-1:0]) | (op1 << (`WIDTH - op2[`LOG2_WIDTH-1:0]));
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = (op1 >> shamt) | (op1 << (`WIDTH - shamt));
+            Zero = (ALU_out == 0) ? 1 : 0;
             Neg = ALU_out[`WIDTH-1];
         end
         OP_MOV: begin
             ALU_out = op1;
         end
         OP_SLT: begin
-            ALU_out = ($signed(op1) < $signed(op2));
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = ($signed(op1) < $signed(op2)) ? 1'd1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
         end
         OP_SLTU: begin
-            ALU_out = (op1 < op2);
-            Zero = !ALU_out ? 1 : 0;
+            ALU_out = (op1 < op2) ? 1'd1 : 0;
+            Zero = (ALU_out == 0) ? 1 : 0;
         end
         OP_LUI: begin
             ALU_out = op2;  // <-- {IMM, 20'b0}
