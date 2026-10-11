@@ -37,6 +37,7 @@
 `define OP_SLTU      8'h1D
 `define OP_LUI       8'h1E
 `define OP_BLTU      8'h24
+`define OP_BGEU      8'h25
 `define OP_JMP_REG   8'h26
 `define OP_CALL      8'h27
 `define OP_RET       8'h28

@@ -7,7 +7,7 @@
 `define PMEMDEPTH 4096   // Program Memory Depth is 4k
 `define LOG2_PMEMDEPTH $clog2(`PMEMDEPTH)  // Program Mem Depth Address width
 `define NofR 16     // No. of General Purpose Registers
-`define LOG2_NofR $clog2(`NofR)     // Registers' Address Width size
+`define LOG2_NofR $clog2(`NofR)     // Rd, Rs1, Rs2 Address size width (16 General purpose Registers)
 `define STMDEPTH 1024   // Stack Memory Depth
 `define LOG2_STMDEPTH $clog2(`STMDEPTH)  // Stack Pointer width
 `define MEM_DEPTH 16384     // Main Memory Depth is 16k
@@ -16,6 +16,5 @@
 
 // Instruction set Architecture Params
 `define INS_WIDTH 32    // Instruction Memory
-`define Reg_WIDTH 4      // Rd, Rs1, Rs2 Address size width (16 General purpose Registers)
 `define IMM_WIDTH 12     // IMM value width
 `endif
