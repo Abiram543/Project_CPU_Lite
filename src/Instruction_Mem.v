@@ -4,8 +4,7 @@ module Instruction_Mem (
     input wire clk, 
     input wire rstn,
     input wire PC_val,      // From PC [Program Counter]
-    input wire Rd_en,     // From Control Unit
-
+    
     output reg [`WIDTH-1:0] Instr
 );
 
@@ -19,7 +18,7 @@ always @(posedge clk or negedge rstn) begin
     if (!rstn) begin
         Instr <= 'hFF000000;    // Halt
     end
-    else if (Rd_en) begin
+    else begin
         Instr <= P_Mem[PC_val];
     end
 end
